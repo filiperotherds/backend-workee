@@ -17,14 +17,13 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tokens  Token[]
-  invites Invite[]
-  project Project[]
+  tokens       Token[]
+  invites      Invite[]
+  projectOwner Project[]
 
   member_on         Member?
   organizationOwner Organization?
   UserProfile       UserProfile?
-  Address           Address?
 }
 
 model UserProfile {
@@ -87,8 +86,8 @@ model Invite {
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
 
-  @@index(email)
   @@unique([email, organizationId])
+  @@index(email)
   @@map("invite")
 }
 
@@ -165,9 +164,6 @@ model Address {
   country   String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String? @unique @map("user_id")
 
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?       @map("organization_id")

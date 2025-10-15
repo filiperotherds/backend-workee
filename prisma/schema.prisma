@@ -17,22 +17,21 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  tokens       Token[]
-  invites      Invite[]
-  projectOwner Project[]
+  tokens  Token[]
+  invites Invite[]
 
-  member_on         Member?
+  member            Member?
   organizationOwner Organization?
-  UserProfile       UserProfile?
+  userProfile       UserProfile?
 }
 
 model UserProfile {
-  id        String    @id @default(uuid())
-  addresses Address[]
+  id           String    @id @default(uuid())
+  addresses    Address[]
+  projectOwner Project[]
 
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  String    @unique @map("user_id")
-  project Project[]
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @map("user_id")
 }
 
 enum TokenType {
@@ -127,7 +126,7 @@ model Organization {
   members Member[]
   address Address[]
 
-  @@index([slug])
+  @@index(slug)
   @@map("organization")
 }
 
@@ -195,9 +194,6 @@ model Project {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
   status      ProjectStatus @default(PENDING)
-
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String @map("owner_id")
 
   service   Service @relation(fields: [serviceId], references: [id])
   serviceId String  @map("service_id")

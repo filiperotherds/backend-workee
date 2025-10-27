@@ -3,6 +3,7 @@ import { hash } from 'bcryptjs'
 import { ClientRepository } from './client.repository'
 import type { CreateClientAccountBodySchema } from './schema/create-client-account.schema'
 import type { CreateClientAddressBodySchema } from './schema/create-client-address.schema'
+import { TokenPayload } from 'src/auth/jwt.strategy'
 
 @Injectable()
 export class ClientService {
@@ -32,8 +33,11 @@ export class ClientService {
     return { user, userProfile }
   }
 
-  async createAddress(createAddress: CreateClientAddressBodySchema) {
-    const userId = createAddress.userId
+  async createAddress(
+    createAddress: CreateClientAddressBodySchema,
+    user: TokenPayload,
+  ) {
+    const userId = user.sub
 
     const userProfileId =
       await this.clientRepository.getUserProfileIdByUserId(userId)

@@ -6,7 +6,6 @@ export const createClientAddressBodySchema = z.object({
   state: z.string(),
   zipCode: z.string(),
   country: z.string(),
-  userId: z.string().uuid(),
 })
 
 export type CreateClientAddressBodySchema = z.infer<

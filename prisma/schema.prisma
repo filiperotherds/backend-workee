@@ -32,6 +32,8 @@ model UserProfile {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique @map("user_id")
+
+  @@map("user_profile")
 }
 
 enum TokenType {

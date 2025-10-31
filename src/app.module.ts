@@ -5,7 +5,7 @@ import { ClientModule } from './domain/entities/client/individual/client.module'
 import { AuthModule } from './auth/auth.module'
 import { ConfigModule } from '@nestjs/config'
 import { envSchema } from './env'
-import { AuthenticateController } from './auth/controllers/authenticate.controller'
+import { AuthenticateController } from './auth/controllers/authenticate-client.controller'
 
 @Module({
   imports: [

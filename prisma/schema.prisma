@@ -23,6 +23,8 @@ model User {
   member            Member?
   organizationOwner Organization?
   userProfile       UserProfile?
+
+  @@map("user")
 }
 
 model UserProfile {

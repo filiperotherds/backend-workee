@@ -1,0 +1,21 @@
+import 'dotenv/config'
+import { z } from 'zod'
+
+export const envSchema = z.object({
+  DATABASE_URL: z.string(),
+  JWT_PRIVATE_KEY: z.string(),
+  JWT_PUBLIC_KEY: z.string(),
+  PORT: z.coerce.number().default(3333),
+})
+
+export type Env = z.infer<typeof envSchema>
+
+const _env = envSchema.safeParse(process.env)
+
+if (_env.success === false) {
+  console.error('Invalid enviroment variables.', _env.error.format())
+
+  throw new Error('Invalid enviroment variables.')
+}
+
+export const env = _env.data

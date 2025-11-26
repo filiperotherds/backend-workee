@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { Address, User, UserProfile } from 'generated/prisma'
 import type { CreateClientAccountBodySchema } from './schema/create-client-account.schema'
 import type { CreateAddressBodySchema } from '../../address/schema/create-address.schema'
 import { PrismaService } from '@/database/prisma/prisma.service'
+import { Address, User, UserProfile } from 'generated/prisma/client'
 
 @Injectable()
 export class ClientRepository {

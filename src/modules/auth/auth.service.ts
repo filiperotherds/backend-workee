@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { AuthenticateBodySchema } from './dto/authenticate.dto'
+import { AuthenticateBodySchema } from './schemas/auth.schema'
 import { compare } from 'bcryptjs'
 
 type JwtTyp = 'USER' | 'ORG_CLIENT' | 'ORG_PRO'

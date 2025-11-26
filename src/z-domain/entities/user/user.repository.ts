@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { User } from 'generated/prisma'
+import { User } from 'generated/prisma/client'
 import { PrismaService } from '@/database/prisma/prisma.service'
 import type { CreateAccountBodySchema } from './schema/create-account.schema'
 

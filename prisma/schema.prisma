@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../generated/prisma"
 }
 
@@ -9,19 +9,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  avatarUrl String?  @map("avatar_url")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  tokens  Token[]
-  invites Invite[]
-
+  id                String        @id @default(uuid())
+  name              String
+  email             String        @unique
+  password          String
+  avatarUrl         String?       @map("avatar_url")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  invites           Invite[]
   member            Member?
   organizationOwner Organization?
+  tokens            Token[]
   userProfile       UserProfile?
 
   @@map("user")
@@ -29,28 +27,164 @@ model User {
 
 model UserProfile {
   id           String    @id @default(uuid())
+  userId       String    @unique @map("user_id")
   addresses    Address[]
   projectOwner Project[]
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profile")
-}
-
-enum TokenType {
-  PASSWORD_RECOVER
 }
 
 model Token {
   id        String    @id @default(uuid())
   type      TokenType
   createdAt DateTime  @default(now()) @map("created_at")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @map("user_id")
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tokens")
+}
+
+model Invite {
+  id             String       @id @default(uuid())
+  email          String
+  role           Role
+  type           OrgType
+  createdAt      DateTime     @default(now()) @map("created_at")
+  authorId       String?      @map("author_id")
+  organizationId String
+  author         User?        @relation(fields: [authorId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([email, organizationId])
+  @@index([email])
+  @@map("invite")
+}
+
+model Member {
+  id             String       @id @default(uuid())
+  role           Role         @default(MEMBER)
+  type           OrgType
+  userId         String       @unique @map("user_id")
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId], map: "idx_member_organization_id")
+  @@map("member")
+}
+
+model Organization {
+  id                        String         @id @default(uuid())
+  name                      String
+  slug                      String         @unique
+  type                      OrgType
+  domain                    String?        @unique
+  shouldAttachUsersByDomain Boolean        @default(false) @map("should_attach_users_by_domain")
+  avatarUrl                 String?        @map("avatar_url")
+  createdAt                 DateTime       @default(now()) @map("created_at")
+  updatedAt                 DateTime       @updatedAt @map("updated_at")
+  ownerId                   String         @unique @map("owner_id")
+  address                   Address[]
+  clientProfile             ClientProfile?
+  invites                   Invite[]
+  members                   Member[]
+  owner                     User           @relation(fields: [ownerId], references: [id])
+  proProfile                ProProfile?
+
+  @@index([slug])
+  @@map("organization")
+}
+
+model ProProfile {
+  id             String       @id @default(uuid())
+  organizationId String       @unique @map("organization_id")
+  estimates      Estimate[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project[]
+  services       Service[]    @relation("ProProfileToService")
+
+  @@map("pro_profile")
+}
+
+model ClientProfile {
+  id             String       @id @default(uuid())
+  organizationId String       @unique @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project[]
+
+  @@map("client_profile")
+}
+
+model Address {
+  id             String        @id @default(uuid())
+  street         String
+  city           String
+  state          String
+  zipCode        String        @map("zip_code")
+  country        String
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  organizationId String?       @map("organization_id")
+  userProfileId  String?       @map("user_profile_id")
+  number         String
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  userProfile    UserProfile?  @relation(fields: [userProfileId], references: [id])
+
+  @@map("address")
+}
+
+model Service {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  slug        String       @unique
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  project     Project[]
+  proProfile  ProProfile[] @relation("ProProfileToService")
+
+  @@map("service")
+}
+
+model Project {
+  id              String         @id @default(uuid())
+  description     String?
+  photoUrls       String[]       @map("photo_urls")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  status          ProjectStatus  @default(PENDING)
+  serviceId       String         @map("service_id")
+  proProfileId    String?        @map("pro_profile_id")
+  clientProfileId String?        @map("client_profile_id")
+  userProfileId   String?        @map("user_profile_id")
+  estimate        Estimate[]
+  clientProfile   ClientProfile? @relation(fields: [clientProfileId], references: [id])
+  proProfile      ProProfile?    @relation(fields: [proProfileId], references: [id])
+  service         Service        @relation(fields: [serviceId], references: [id])
+  userProfile     UserProfile?   @relation(fields: [userProfileId], references: [id])
+
+  @@map("project")
+}
+
+model Estimate {
+  id           String         @id @default(uuid())
+  description  String?
+  duration     Int
+  value        Int
+  status       EstimateStatus @default(PENDING)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  validity     DateTime?
+  projectId    String         @map("project_id")
+  proProfileId String?        @map("pro_profile_id")
+  proProfile   ProProfile?    @relation(fields: [proProfileId], references: [id])
+  project      Project        @relation(fields: [projectId], references: [id])
+
+  @@map("estimate")
+}
+
+enum TokenType {
+  PASSWORD_RECOVER
 }
 
 enum ProjectStatus {
@@ -74,163 +208,4 @@ enum Role {
 enum OrgType {
   PRO
   CLIENT
-}
-
-model Invite {
-  id        String   @id @default(uuid())
-  email     String
-  role      Role
-  type      OrgType
-  createdAt DateTime @default(now()) @map("created_at")
-
-  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  authorId String? @map("author_id")
-
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-
-  @@unique([email, organizationId])
-  @@index(email)
-  @@map("invite")
-}
-
-model Member {
-  id   String  @id @default(uuid())
-  role Role    @default(MEMBER)
-  type OrgType
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique @map("user_id")
-
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId String       @map("organization_id")
-
-  @@index([organizationId], map: "idx_member_organization_id")
-  @@map("member")
-}
-
-model Organization {
-  id                        String   @id @default(uuid())
-  name                      String
-  slug                      String   @unique
-  type                      OrgType
-  domain                    String?  @unique
-  shouldAttachUsersByDomain Boolean  @default(false) @map("should_attach_users_by_domain")
-  avatarUrl                 String?  @map("avatar_url")
-  createdAt                 DateTime @default(now()) @map("created_at")
-  updatedAt                 DateTime @updatedAt @map("updated_at")
-
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String @unique @map("owner_id")
-
-  proProfile    ProProfile?
-  clientProfile ClientProfile?
-
-  invites Invite[]
-  members Member[]
-  address Address[]
-
-  @@index(slug)
-  @@map("organization")
-}
-
-model ProProfile {
-  id String @id @default(uuid())
-
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId String       @unique @map("organization_id")
-
-  services  Service[]
-  estimates Estimate[]
-  project   Project[]
-
-  @@map("pro_profile")
-}
-
-model ClientProfile {
-  id String @id @default(uuid())
-
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId String       @unique @map("organization_id")
-
-  project Project[]
-
-  @@map("client_profile")
-}
-
-model Address {
-  id        String   @id @default(uuid())
-  number    String
-  street    String
-  city      String
-  state     String
-  zipCode   String   @map("zip_code")
-  country   String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  organizationId String?       @map("organization_id")
-
-  userProfile   UserProfile? @relation(fields: [userProfileId], references: [id])
-  userProfileId String?      @map("user_profile_id")
-
-  @@map("address")
-}
-
-model Service {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  slug        String   @unique
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  project    Project[]
-  proProfile ProProfile[]
-
-  @@map("service")
-}
-
-model Project {
-  id          String        @id @default(uuid())
-  description String?
-  photoUrls   String[]      @map("photo_urls")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  status      ProjectStatus @default(PENDING)
-
-  service   Service @relation(fields: [serviceId], references: [id])
-  serviceId String  @map("service_id")
-
-  estimate Estimate[]
-
-  proProfile   ProProfile? @relation(fields: [proProfileId], references: [id])
-  proProfileId String?     @map("pro_profile_id")
-
-  clientProfile   ClientProfile? @relation(fields: [clientProfileId], references: [id])
-  clientProfileId String?        @map("client_profile_id")
-
-  userProfile   UserProfile? @relation(fields: [userProfileId], references: [id])
-  userProfileId String?      @map("user_profile_id")
-
-  @@map("project")
-}
-
-model Estimate {
-  id          String         @id @default(uuid())
-  description String?
-  duration    Int
-  value       Int
-  status      EstimateStatus @default(PENDING)
-  createdAt   DateTime       @default(now()) @map("created_at")
-  validity    DateTime?
-
-  project   Project @relation(fields: [projectId], references: [id])
-  projectId String  @map("project_id")
-
-  proProfile   ProProfile? @relation(fields: [proProfileId], references: [id])
-  proProfileId String?     @map("pro_profile_id")
-
-  @@map("estimate")
 }

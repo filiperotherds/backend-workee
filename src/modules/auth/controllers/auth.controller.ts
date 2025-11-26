@@ -5,7 +5,7 @@ import { AuthService } from '../auth.service'
 import {
   type AuthenticateBodySchema,
   authenticateBodySchema,
-} from '../dto/authenticate.dto'
+} from '../schemas/auth.schema'
 
 type JwtTyp = 'USER' | 'ORG_CLIENT' | 'ORG_PRO'
 

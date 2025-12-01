@@ -5,6 +5,8 @@ export const envSchema = z.object({
   DATABASE_URL: z.string(),
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
+  TWILIO_ACCOUNT_SID: z.string(),
+  TWILIO_AUTH_TOKEN: z.string(),
   PORT: z.coerce.number().default(3333),
 })
 
